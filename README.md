@@ -16,7 +16,12 @@ This script will convert the .xml file into a data frame with one post per line.
 For my purposes, output to csv is sufficient for now, but this can be adapted to output individual .txt or .md files per post. 
 
 ## Acknowledgement
-The code in this script is adapted from Kenneth Wong's [xml to Dataframe in R](https://urbandatapalette.com/post/2021-03-xml-dataframe-r/).
+The code in this script is adapted from Kenneth Wong's [xml to Dataframe in R](https://urbandatapalette.com/post/2021-03-xml-dataframe-r/)*.
 I am only responsible for streamlining the code with minor modifications and observations specific to the Wordpress export use-case.
 Readers are encouraged to work through the above article for a better understanding of xml files. 
 This may be necessary if you want to further customize for a slightly different usecase.
+
+*Kenneth Wong, in turn, references:  
+- [How to convert a partly nested XML to data frame using xml2](https://community.rstudio.com/t/how-to-convert-a-partly-nested-xml-to-data-frame-using-xml2/36705/2)
+- [nested XML to data frame in R](https://stackoverflow.com/questions/47254923/nested-xml-to-data-frame-in-r)
+- [Converting xml to tibble in R](https://megapteraphile.wordpress.com/2020/03/29/converting-xml-to-tibble-in-r/)
