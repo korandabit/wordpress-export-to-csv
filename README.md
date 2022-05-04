@@ -1,4 +1,4 @@
-# wordpress-export-to-csv
+# Wordpress Posts to CSV
 Exporting your wordpress posts gives you an .xml file, which is not easily readable or usable for anything other than importing in another wordpress environment.
 This script flattens and filters the xml file into readable rows, one per blog post.
 
