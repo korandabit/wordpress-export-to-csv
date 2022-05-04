@@ -1,0 +1,111 @@
+---
+title: "Wordpress: Convert Export to .csv"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    theme: flatly
+  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning=FALSE)
+```
+
+# Purpose
+## Context
+
+Exporting your wordpress posts gives you an .xml file, which is not easily readable or usable for anything other than importing in another wordpress environment.
+
+## Use Case
+I want a plaintext file format that I can either edit or import at a later date to a non-Wordpress platform. Right now, this will likely be github pages.
+
+This script will convert the .xml file into a data frame with one post per line.
+For my purposes, output to csv is sufficient for now, but this can be adapted to output individual .txt or .md files per post. 
+
+## Acknowledgement
+This script is a close adaptation of this article, ["xml to Dataframe"](https://urbandatapalette.com/post/2021-03-xml-dataframe-r/).
+
+I am only responsible for streamlining the code with minor modifications necessary for this specific use-case.
+
+Readers are encouraged to work through the above article for a better understanding of xml files. This may be necessary if you want to further customize for a slightly different usecase.
+
+# Workflow
+
+## Export xml
+First step is to export your Wordpress data, if you have not done so already: 
+1. Logged into your account, in the left-navigation menu find "Export" under "Tools", and follow instructions to export and download (via email at the time of writing).
+2. Extract the .zip download and identify your .xml file.
+
+## Import to R-Studio
+
+```{r,message=FALSE}
+library(xml2)
+library(tidyverse)
+```
+
+3. Set your working directory to that file location, and put your filename into the quotes below.
+
+```{r}
+filename <- "thoughtrepair.wordpress.2022-04-29.000.xml"
+```
+
+## One row per post 
+
+The next step is to flatten the xml data structure into a rectangle with one post per line. The identifier of interest is "item". At this point we're throwing out any site-wide structure, and pages that are not posts.
+
+```{r,  results = 'hide',message=FALSE}
+df  <- read_xml(filename) %>% 
+  as_list() %>% 
+  tibble::as_tibble() %>%
+  unnest_longer(rss)%>%
+  dplyr::filter(rss_id == "item") %>%
+  unnest_wider(rss) 
+
+```
+
+## Convert to df  
+
+The resulting format is nearly final, but we need to specify the data of interest. Specifically, some aspect of the above process renders an unknown set of columns to be problematic. Here I have specified the columns of interest for my purposes, however you may want to inspect the dataframe at this point to get a sense of what columns you additionally need or don't. Regardless, given that your Wordpress posts are not mine, you may run into an error at this point. The following comment describes how I debugged it for my purposes, along with my impression of the error (without fully resolving it, generally).
+
+*While I did not fully debug, I spent some time and will share the insight for those interested in pursuing this further. The issue seems to be between the non-uniform number of values for specific variables (such as comments) between articles, and the unnest_wider function. An alternative is that further unnesting is needed. In any case, the first column I had successfully identified as breaking the script given columns that were breaking it, was a `comment` column. Use that information how you will.* 
+
+```{r, results = 'hide',message=FALSE}
+
+df2  <- df %>%
+  select(title,pubDate,creator,
+         `encoded...7`,`encoded...8`,
+         post_date,post_modified,
+         link,post_type,
+         status,post_parent,
+         starts_with("category"),
+         comment...32
+  ) %>% 
+  unnest(cols = names(.)) %>%
+unnest(cols = names(.)) %>%
+  readr::type_convert() 
+
+```
+
+
+At this point you have a dataframe appropriately structured with one line per post. 
+```{r}
+head(df2)
+```
+
+### Non-post content 
+If you have additional content besides text-based posts, as I did, there will also be lines for those entities, such as captioned photos, technically "nested" within a post. 
+I kept these, but you may not want to.
+To remove them, selecting only parent items, something like this, should work: 
+.
+```{r eval = FALSE}
+df <- filter(df, post_parent=="")
+```
+
+## Write to csv
+
+```{r}
+write_csv(df2,file="wordpress_posts.csv")
+```
+
